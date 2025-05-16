@@ -11,3 +11,43 @@ An FPGA-based hardware accelerator for generating arithmetic sequences with high
 ## Project Overview
 
 This project implements an Arithmetic Series Generator (ASG) on FPGA to accelerate the generation of arithmetic sequences following the formula:
+
+##a(n) = a₁ + (n-1) · d
+Where:
+- a₁ is the first term
+- d is the common difference
+- n is the term index
+
+## Repository Structure
+
+- `/rtl`: RTL design files for the FPGA implementation
+- `/python`: Gold standard implementations for validation
+- `/docs`: Documentation, diagrams, and reports
+- `/results`: Performance benchmark results
+
+## Section One Implementation
+
+The baseline implementation includes:
+- Q16.16 fixed-point arithmetic
+- Single-cycle term generation
+- Memory interface for term storage
+- Comprehensive verification framework
+
+### Key Features
+- Pipelined architecture for high throughput
+- Configurable parameters (a₁, d, n)
+- Memory-mapped interface
+- Validation against Python gold standard
+
+## Getting Started
+
+### Prerequisites
+- Vivado/Quartus/your FPGA toolchain
+- Python 3.x for gold standard verification
+- (Any other dependencies)
+
+### Building and Running
+1. Clone the repository
+```bash
+git clone https://github.com/vinny-mze/arithmetic-signal-generator.git
+cd arithmetic-signal-generator
