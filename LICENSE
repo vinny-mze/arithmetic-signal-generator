@@ -1,1 +1,34 @@
+### 2. Create a Python Directory with Gold Standard
 
+Create a file at `python/fixed_point_asg.py` with the Python gold standard implementation you've already tested.
+
+### 3. Add a Development Environment Setup File
+
+Create `docs/development_setup.md`:
+
+```markdown
+# Development Environment Setup
+
+This document outlines the steps to set up your environment for working with the Arithmetic Signal Generator project.
+
+## FPGA Development Tools
+
+### Vivado/Quartus Setup
+1. Download and install Xilinx Vivado / Intel Quartus (version X.X)
+2. Set up a new project with target device: (your FPGA board)
+3. Import the RTL files from the `/rtl` directory
+
+### Simulation Tools
+1. Install ModelSim/Questasim/VCS/other simulator
+2. Add simulation files from `/rtl/testbench`
+
+## Python Environment Setup
+
+1. Install Python 3.x
+2. No special packages required for the basic gold standard
+
+## OpenCL Environment (Section Two)
+
+1. Install OpenCL SDK
+2. Configure environment variables
+3. Verify GPU detection
