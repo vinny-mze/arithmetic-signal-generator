@@ -12,7 +12,7 @@ An FPGA-based hardware accelerator for generating arithmetic sequences with high
 
 This project implements an Arithmetic Series Generator (ASG) on FPGA to accelerate the generation of arithmetic sequences following the formula:
 
-##a(n) = a₁ + (n-1) · d
+## a(n) = a₁ + (n-1) · d
 Where:
 - a₁ is the first term
 - d is the common difference
