@@ -42,9 +42,9 @@ The baseline implementation includes:
 ## Getting Started
 
 ### Prerequisites
-- Vivado/Quartus/your FPGA toolchain
+- icarus
 - Python 3.x for gold standard verification
-- (Any other dependencies)
+- 
 
 ### Building and Running
 1. Clone the repository
