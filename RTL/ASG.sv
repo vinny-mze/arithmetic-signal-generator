@@ -171,12 +171,15 @@ module fp_adder (
     reg [7:0] exp_diff;         // Exponent difference
     
     // Adder state machine states
-    localparam IDLE = 8'h0;      // Waiting for start
-    localparam UNPACK = 8'h1;    // Unpack IEEE-754 format
-    localparam ALIGN = 8'h2;     // Align mantissas
-    localparam ADD = 8'h3;       // Perform addition
-    localparam NORMALIZE = 8'h4; // Normalize result
-    localparam PACK = 8'h5;      // Pack into IEEE-754
+    localparam IDLE = 3'h0;      // Waiting for start
+    localparam UNPACK = 3'h1;    // Unpack IEEE-754 format
+    localparam ALIGN = 3'h2;     // Align mantissas
+    localparam ADD = 3'h3;       // Perform addition
+    localparam NORMALIZE = 3'h4; // Normalize result
+    localparam PACK = 3'h5;      // Pack into IEEE-754
+    
+    // Add the missing state register
+    reg [2:0] state;
     
     // Main adder state machine
     always @(posedge clk or negedge rst_n) begin
@@ -271,6 +274,8 @@ module fp_adder (
                     done <= 1'b1;  // Signal completion
                     state <= IDLE;
                 end
+                
+                default: state <= IDLE;  // Handle undefined states
             endcase
         end
     end
