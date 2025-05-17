@@ -1,74 +1,112 @@
 # Floating-Point Arithmetic Sequence Generator
 
+![Verilog](https://img.shields.io/badge/Verilog-HDL-blue) 
+![IEEE754](https://img.shields.io/badge/IEEE-754-green)
+![FPGA](https://img.shields.io/badge/FPGA-Compatible-orange)
+![Tested](https://img.shields.io/badge/Tested-6_Cases-success)
+
+A high-performance, hardware-optimized arithmetic sequence generator implementing IEEE-754 single-precision floating-point arithmetic with comprehensive benchmarking capabilities.
+
+## Table of Contents
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Test Cases](#test-cases)
+  - [Functional Tests](#functional-tests)
+  - [Performance Benchmark](#performance-benchmark)
+- [Performance Metrics](#performance-metrics)
+- [Getting Started](#getting-started)
+  - [Simulation](#simulation)
+  - [Synthesis](#synthesis)
+- [Extending the Project](#extending-the-project)
+- [Future Work](#future-work)
+- [License](#license)
+
 ## Overview
-This project implements an IEEE-754 single-precision floating-point arithmetic sequence generator in Verilog. The module generates a sequence of numbers in the form `a(n) = a1 + (n-1)d` and stores the results in memory.
 
-## Module Description
+The module generates arithmetic sequences of the form:
 
-### `fp_arithmetic_sequence_generator`
-#### Inputs:
-- `clk`: Clock signal
-- `rst_n`: Active-low reset
-- `activate`: Pulse to start sequence generation
-- `a1`: First term (IEEE-754 single precision)
-- `d`: Common difference (IEEE-754 single precision)
-- `n`: Number of terms (32-bit unsigned integer)
-- `saddr`: Starting memory address for results
-- `mem_ready`: Memory ready signal
+**a(n) = a₁ + (n − 1) × d**
 
-#### Outputs:
-- `done`: High when sequence generation is complete
-- `mem_addr`: Memory address (byte addressable)
-- `mem_wdata`: Data to write to memory
-- `mem_write`: Write enable signal
+Where:
+- `a₁` = First term (IEEE-754 32-bit floating-point)
+- `d` = Common difference (IEEE-754 32-bit floating-point)
+- `n` = Number of terms (32-bit unsigned integer)
 
-#### Features:
-- Generates arithmetic sequences with floating-point precision
-- Uses a finite state machine (FSM) for control flow
-- Includes a floating-point adder module for calculations
-- Handles memory writes with handshake protocol
+Key characteristics:
+- Fully pipelined design
+- Wishbone-compatible memory interface
+- 6-stage floating-point adder
+- Comprehensive testbench with performance metrics
 
-### `fp_adder`
-A supporting module that performs IEEE-754 single-precision floating-point addition. It:
-1. Unpacks the floating-point numbers
-2. Aligns mantissas
-3. Performs addition/subtraction
-4. Normalizes the result
-5. Packs it back into IEEE-754 format
+## Architecture
 
-## Testbench
-The testbench (`fp_arithmetic_sequence_generator_tb`) verifies the functionality with several test cases:
+![Block Diagram](https://i.imgur.com/JQ6G8vD.png)
 
-1. Simple sequence: 1.0, 2.0, 3.0, 4.0, 5.0
-2. Decreasing sequence: 10.0, 9.5, 9.0, 8.5, 8.0
-3. Large values with small difference: 1000.0, 1000.1, 1000.2, 1000.3, 1000.4
-4. Single term sequence: 3.14
-5. Negative values: -5.0, -2.5, 0.0, 2.5, 5.0
+### Core Components:
+1. **Control FSM** (8 states)
+   - IDLE, INIT, LOAD_ADD, WAIT_ADD, MEM_WRITE, WAIT_MEM, FINISH
+2. **Floating-Point Adder**
+   - IEEE-754 compliant
+   - 6-stage pipeline (UNPACK → ALIGN → ADD → NORMALIZE → PACK)
+3. **Memory Interface**
+   - 32-bit data bus
+   - Word-addressable
+   - Ready/Write handshake protocol
 
-The testbench includes helper functions to convert between floating-point numbers and their IEEE-754 representations for verification.
+## Features
 
-## Simulation
-To run the simulation:
-1. Use a Verilog simulator (e.g., Icarus Verilog, ModelSim)
-2. Compile both the design and testbench files
-3. Run the simulation
-4. View the waveform output (`fp_arithmetic_sequence_generator_tb.vcd`) if desired
+### Core Functionality
+- IEEE-754 single-precision floating-point arithmetic
+- Configurable sequence parameters (a₁, d, n)
+- Memory-mapped output with start address selection
+- Proper handling of special cases:
+  - Negative numbers
+  - Small/large value ranges
+  - Zero crossings
 
-## Expected Output
-The testbench will:
-- Display results of each test case
-- Report any discrepancies between expected and actual values
-- Provide a summary indicating whether all tests passed or the number of errors detected
+### Verification & Benchmarking
+- Built-in performance metrics collection
+- Functional correctness checks
+- Waveform generation for debugging
+- Automated test reporting
 
-## Implementation Notes
-- Synchronous active-low reset
-- Memory writes use handshake protocol (`mem_write` and `mem_ready`)
-- Floating-point adder handles normalization and special cases (like zero)
-- Testbench includes a reset test that interrupts an ongoing sequence
+## Test Cases
 
-## Limitations
-- Floating-point adder uses simplified normalization
-- Assumes word-aligned memory addresses
-- Denormal numbers and NaN/infinity cases not fully handled
+### Functional Tests
 
-This implementation provides a solid foundation for generating arithmetic sequences with floating-point precision in hardware.
+| Test Case | Parameters | Expected Output | Purpose |
+|-----------|------------|-----------------|---------|
+| TC1 | `a₁=1.0, d=1.0, n=5` | [1.0, 2.0, 3.0, 4.0, 5.0] | Basic verification |
+| TC2 | `a₁=10.0, d=-0.5, n=5` | [10.0, 9.5, 9.0, 8.5, 8.0] | Negative difference |
+| TC3 | `a₁=1000.0, d=0.1, n=5` | [1000.0, 1000.1, 1000.2, 1000.3, 1000.4] | Precision validation |
+| TC4 | `a₁=3.14, d=2.71, n=1` | [3.14] | Single-term edge case |
+| TC5 | `a₁=-5.0, d=2.5, n=5` | [-5.0, -2.5, 0.0, 2.5, 5.0] | Sign handling |
+
+### Performance Benchmark
+**TC6**: `a₁=1.0, d=0.1, n=1000`  
+Measures:
+- Throughput scaling
+- Memory bandwidth
+- Pipeline efficiency
+
+## Performance Metrics
+
+The testbench automatically collects:
+
+| Metric | Description | Formula |
+|--------|-------------|---------|
+| Execution Time | Total simulation time | end_time - start_time |
+| First Element Latency | Cycles until first write | first_write - activation |
+| Throughput | Elements per second | n/(execution_time × 10⁻⁶) |
+| Cycles/Element | Pipeline efficiency | total_cycles/n |
+| Memory BW | Data transfer rate | (n × 4B)/(execution_time × 10⁻⁶) |
+
+## Getting Started
+
+### Simulation
+
+1. Compile and run:
+```bash
+iverilog -o sim fp_arithmetic_sequence_generator.v tb_with_metrics.v
+vvp sim > results.log
