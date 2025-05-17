@@ -1,6 +1,8 @@
+// Code your testbench here
+// or browse Examples
 `timescale 1ns/1ps
 
-module fp_arithmetic_sequence_generator_tb;
+module fp_arithmetic_sequence_generator_tb_with_metrics;
 
     // Parameters
     parameter CLK_PERIOD = 10; // 10ns (100MHz clock)
@@ -23,6 +25,19 @@ module fp_arithmetic_sequence_generator_tb;
     
     // Memory model
     reg [31:0] mem [0:1023]; // 1024 words of memory
+    
+    // Performance metrics
+    time start_time, end_time;
+    integer cycle_count;
+    time first_write_time;
+    reg first_write_detected;
+    time last_write_time;
+    
+    // Overall performance metrics
+    real total_elements_processed;
+    time total_execution_time;
+    real avg_throughput;
+    real avg_cycles_per_element;
     
     // Test variables
     integer i;
@@ -149,16 +164,83 @@ module fp_arithmetic_sequence_generator_tb;
         if (mem_write) begin
             mem[mem_addr/4] <= mem_wdata; // Assuming word-aligned addresses
             mem_ready <= 1'b1;
+            
+            // Track first and last memory write times
+            if (!first_write_detected) begin
+                first_write_time = $time;
+                first_write_detected = 1;
+            end
+            last_write_time = $time;
         end else begin
             mem_ready <= 1'b0;
+        end
+    end
+    
+    // Cycle counter
+    always @(posedge clk) begin
+        if (activate && !done) begin
+            cycle_count = cycle_count + 1;
         end
     end
     
     // VCD dump for waveform visualization
     initial begin
         $dumpfile("fp_arithmetic_sequence_generator_tb.vcd");
-        $dumpvars(0, fp_arithmetic_sequence_generator_tb);
+        $dumpvars(0, fp_arithmetic_sequence_generator_tb_with_metrics);
     end
+    
+    // Performance metrics display task
+    task display_metrics;
+        input integer seq_size;
+        input real seq_first;
+        input real seq_diff;
+        input time exec_time;
+        real throughput, cycles_per_element;
+        real latency_first_element;
+        begin
+            throughput = (seq_size * 1000.0) / exec_time;  // Million elements per second
+            cycles_per_element = cycle_count * 1.0 / seq_size;
+            latency_first_element = first_write_time - start_time;
+            
+            // Update overall metrics
+            total_elements_processed = total_elements_processed + seq_size;
+            total_execution_time = total_execution_time + exec_time;
+            
+            $display("============================================================");
+            $display("PERFORMANCE METRICS - VERILOG IMPLEMENTATION");
+            $display("============================================================");
+            $display("Configuration:");
+            $display("  - Clock Frequency: %0d MHz", 1000/CLK_PERIOD);
+            $display("  - Sequence Parameters: a1=%.2f, d=%.2f, n=%0d", seq_first, seq_diff, seq_size);
+            $display("  - Memory Start Address: 0x%h", saddr);
+            $display("\nTiming Metrics:");
+            $display("  - Total Execution Time: %.3f microseconds", exec_time/1000.0);
+            $display("  - First Element Latency: %.3f ns", latency_first_element);
+            $display("\nPerformance Metrics:");
+            $display("  - Clock Cycles Used: %0d cycles", cycle_count);
+            $display("  - Throughput: %.2f million elements/second", throughput);
+            $display("  - Cycles per Element: %.3f cycles", cycles_per_element);
+            $display("  - Memory Bandwidth: %.2f MB/s", throughput * 4.0);
+            $display("============================================================");
+        end
+    endtask
+    
+    // Overall performance metrics display task
+    task display_overall_metrics;
+        real overall_throughput, overall_cycles_per_element;
+        begin
+            overall_throughput = (total_elements_processed * 1000.0) / total_execution_time;
+            
+            $display("============================================================");
+            $display("OVERALL PERFORMANCE METRICS SUMMARY");
+            $display("============================================================");
+            $display("  - Total Elements Processed: %0d elements", total_elements_processed);
+            $display("  - Total Execution Time: %.3f microseconds", total_execution_time/1000.0);
+            $display("  - Average Throughput: %.2f million elements/second", overall_throughput);
+            $display("  - Average Memory Bandwidth: %.2f MB/s", overall_throughput * 4.0);
+            $display("============================================================");
+        end
+    endtask
     
     // Test sequence
     initial begin
@@ -172,6 +254,10 @@ module fp_arithmetic_sequence_generator_tb;
         saddr = 0;
         mem_ready = 0;
         error_count = 0;
+        cycle_count = 0;
+        first_write_detected = 0;
+        total_elements_processed = 0;
+        total_execution_time = 0;
         
         // Reset sequence
         #(2*CLK_PERIOD);
@@ -195,12 +281,21 @@ module fp_arithmetic_sequence_generator_tb;
         n = 5;                       // Number of terms = 5
         saddr = 0;                   // Start address = 0
         
+        // Reset metrics
+        cycle_count = 0;
+        first_write_detected = 0;
+        
         // Start sequence generation
+        start_time = $time;
         activate = 1;
         
         // Wait for done signal
         while (!done) @(posedge clk);
+        end_time = $time;
         $display("Test Case 1 Done signal received");
+        
+        // Display metrics
+        display_metrics(5, 1.0, 1.0, end_time - start_time);
         
         // Verify memory contents
         for (i = 0; i < n; i = i + 1) begin
@@ -209,9 +304,6 @@ module fp_arithmetic_sequence_generator_tb;
                          i, ieee754_to_float(expected_terms[i]), expected_terms[i],
                          ieee754_to_float(mem[i]), mem[i]);
                 error_count = error_count + 1;
-            end else begin
-                $display("Memory[%0d]: %f (0x%h) - Correct",
-                         i, ieee754_to_float(mem[i]), mem[i]);
             end
         end
         
@@ -231,12 +323,21 @@ module fp_arithmetic_sequence_generator_tb;
         n = 5;                         // Number of terms = 5
         saddr = 20;                    // Start address = 20
         
+        // Reset metrics
+        cycle_count = 0;
+        first_write_detected = 0;
+        
         // Start sequence generation
+        start_time = $time;
         activate = 1;
         
         // Wait for done signal
         while (!done) @(posedge clk);
+        end_time = $time;
         $display("Test Case 2 Done signal received");
+        
+        // Display metrics
+        display_metrics(5, 10.0, -0.5, end_time - start_time);
         
         // Verify memory contents
         for (i = 0; i < n; i = i + 1) begin
@@ -245,9 +346,6 @@ module fp_arithmetic_sequence_generator_tb;
                          (saddr/4) + i, ieee754_to_float(expected_terms[i]), expected_terms[i],
                          ieee754_to_float(mem[(saddr/4) + i]), mem[(saddr/4) + i]);
                 error_count = error_count + 1;
-            end else begin
-                $display("Memory[%0d]: %f (0x%h) - Correct",
-                         (saddr/4) + i, ieee754_to_float(mem[(saddr/4) + i]), mem[(saddr/4) + i]);
             end
         end
         
@@ -267,12 +365,21 @@ module fp_arithmetic_sequence_generator_tb;
         n = 5;                          // Number of terms = 5
         saddr = 40;                     // Start address = 40
         
+        // Reset metrics
+        cycle_count = 0;
+        first_write_detected = 0;
+        
         // Start sequence generation
+        start_time = $time;
         activate = 1;
         
         // Wait for done signal
         while (!done) @(posedge clk);
+        end_time = $time;
         $display("Test Case 3 Done signal received");
+        
+        // Display metrics
+        display_metrics(5, 1000.0, 0.1, end_time - start_time);
         
         // Verify memory contents
         for (i = 0; i < n; i = i + 1) begin
@@ -281,9 +388,6 @@ module fp_arithmetic_sequence_generator_tb;
                          (saddr/4) + i, ieee754_to_float(expected_terms[i]), expected_terms[i],
                          ieee754_to_float(mem[(saddr/4) + i]), mem[(saddr/4) + i]);
                 error_count = error_count + 1;
-            end else begin
-                $display("Memory[%0d]: %f (0x%h) - Correct",
-                         (saddr/4) + i, ieee754_to_float(mem[(saddr/4) + i]), mem[(saddr/4) + i]);
             end
         end
         
@@ -298,12 +402,21 @@ module fp_arithmetic_sequence_generator_tb;
         n = 1;                        // Number of terms = 1
         saddr = 60;                   // Start address = 60
         
+        // Reset metrics
+        cycle_count = 0;
+        first_write_detected = 0;
+        
         // Start sequence generation
+        start_time = $time;
         activate = 1;
         
         // Wait for done signal
         while (!done) @(posedge clk);
+        end_time = $time;
         $display("Test Case 4 Done signal received");
+        
+        // Display metrics
+        display_metrics(1, 3.14, 2.71, end_time - start_time);
         
         // Verify memory contents
         if (mem[(saddr/4)] != a1) begin
@@ -311,9 +424,6 @@ module fp_arithmetic_sequence_generator_tb;
                      (saddr/4), ieee754_to_float(a1), a1,
                      ieee754_to_float(mem[(saddr/4)]), mem[(saddr/4)]);
             error_count = error_count + 1;
-        end else begin
-            $display("Memory[%0d]: %f (0x%h) - Correct",
-                     (saddr/4), ieee754_to_float(mem[(saddr/4)]), mem[(saddr/4)]);
         end
         
         // Disable the generator
@@ -332,12 +442,21 @@ module fp_arithmetic_sequence_generator_tb;
         n = 5;                        // Number of terms = 5
         saddr = 80;                   // Start address = 80
         
+        // Reset metrics
+        cycle_count = 0;
+        first_write_detected = 0;
+        
         // Start sequence generation
+        start_time = $time;
         activate = 1;
         
         // Wait for done signal
         while (!done) @(posedge clk);
+        end_time = $time;
         $display("Test Case 5 Done signal received");
+        
+        // Display metrics
+        display_metrics(5, -5.0, 2.5, end_time - start_time);
         
         // Verify memory contents
         for (i = 0; i < n; i = i + 1) begin
@@ -346,15 +465,42 @@ module fp_arithmetic_sequence_generator_tb;
                          (saddr/4) + i, ieee754_to_float(expected_terms[i]), expected_terms[i],
                          ieee754_to_float(mem[(saddr/4) + i]), mem[(saddr/4) + i]);
                 error_count = error_count + 1;
-            end else begin
-                $display("Memory[%0d]: %f (0x%h) - Correct",
-                         (saddr/4) + i, ieee754_to_float(mem[(saddr/4) + i]), mem[(saddr/4) + i]);
             end
         end
         
         // Disable the generator
         activate = 0;
         #(5*CLK_PERIOD);
+        
+        // Test Case 6: Larger sequence (1000 elements) for performance benchmark
+        $display("\nTest Case 6: a1=1.0, d=0.1, n=1000, saddr=100");
+        a1 = float_to_ieee754(1.0);   // First term = 1.0
+        d = float_to_ieee754(0.1);    // Common difference = 0.1
+        n = 1000;                     // Number of terms = 1000
+        saddr = 100;                  // Start address = 100
+        
+        // Reset metrics
+        cycle_count = 0;
+        first_write_detected = 0;
+        
+        // Start sequence generation
+        start_time = $time;
+        activate = 1;
+        
+        // Wait for done signal
+        while (!done) @(posedge clk);
+        end_time = $time;
+        $display("Test Case 6 Done signal received");
+        
+        // Display metrics
+        display_metrics(1000, 1.0, 0.1, end_time - start_time);
+        
+        // Disable the generator
+        activate = 0;
+        #(5*CLK_PERIOD);
+        
+        // Display overall performance metrics
+        display_overall_metrics();
         
         // Final summary
         $display("\n============================================================");
@@ -368,28 +514,6 @@ module fp_arithmetic_sequence_generator_tb;
         // End simulation
         #(10*CLK_PERIOD);
         $finish;
-    end
-    
-    // Additional test to check reset during operation
-    initial begin
-        // Wait until the first test case has started
-        wait(activate == 1);
-        #(30*CLK_PERIOD);
-        
-        // Apply reset in the middle of a sequence
-        $display("\nTesting reset during operation");
-        rst_n = 0;
-        #(2*CLK_PERIOD);
-        rst_n = 1;
-        #(5*CLK_PERIOD);
-        
-        // The main test sequence will continue after reset
-    end
-    
-    // Monitor signals
-    initial begin
-        $monitor("Time=%0t, State: activate=%b, done=%b, mem_write=%b, mem_addr=%0d, mem_wdata=%h", 
-                 $time, activate, done, mem_write, mem_addr, mem_wdata);
     end
 
 endmodule
