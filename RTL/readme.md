@@ -61,12 +61,6 @@ Where:
 | TC4 | `a₁=3.14, d=2.71, n=1` | [3.14] | Single-term edge case |
 | TC5 | `a₁=-5.0, d=2.5, n=5` | [-5.0, -2.5, 0.0, 2.5, 5.0] | Sign handling |
 
-### Performance Benchmark
-**TC6**: `a₁=1.0, d=0.1, n=1000`  
-Measures:
-- Throughput scaling
-- Memory bandwidth
-- Pipeline efficiency
 
 ## Performance Metrics
 
