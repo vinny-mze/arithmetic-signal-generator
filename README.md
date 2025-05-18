@@ -25,26 +25,7 @@ Where:
 - `/docs`: Documentation, diagrams, and reports
 - `/results`: Performance benchmark results
 
-## Section One Implementation
 
-The baseline implementation includes:
-- Q16.16 fixed-point arithmetic
-- Single-cycle term generation
-- Memory interface for term storage
-- Comprehensive verification framework
-
-### Key Features
-- Pipelined architecture for high throughput
-- Configurable parameters (a₁, d, n)
-- Memory-mapped interface
-- Validation against Python gold standard
-
-## Getting Started
-
-### Prerequisites
-- icarus
-- Python 3.x for gold standard verification
-- 
 
 ### Building and Running
 1. Clone the repository
