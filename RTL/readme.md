@@ -25,15 +25,9 @@ The module generates arithmetic sequences of the form:
 **a(n) = a₁ + (n − 1) × d**
 
 Where:
-- `a₁` = First term (IEEE-754 32-bit floating-point)
-- `d` = Common difference (IEEE-754 32-bit floating-point)
-- `n` = Number of terms (32-bit unsigned integer)
-
-Key characteristics:
-- Fully pipelined design
-- Wishbone-compatible memory interface
-- 6-stage floating-point adder
-- Comprehensive testbench with performance metrics
+- `a₁` = First term 
+- `d` = Common difference 
+- `n` = Number of terms 
 
 
 ### Core Components:
@@ -48,15 +42,6 @@ Key characteristics:
    - Ready/Write handshake protocol
 
 ## Features
-
-### Core Functionality
-- IEEE-754 single-precision floating-point arithmetic
-- Configurable sequence parameters (a₁, d, n)
-- Memory-mapped output with start address selection
-- Proper handling of special cases:
-  - Negative numbers
-  - Small/large value ranges
-  - Zero crossings
 
 ### Verification & Benchmarking
 - Built-in performance metrics collection
