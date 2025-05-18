@@ -16,10 +16,7 @@ A high-performance, hardware-optimized arithmetic sequence generator implementin
 - [Performance Metrics](#performance-metrics)
 - [Getting Started](#getting-started)
   - [Simulation](#simulation)
-  - [Synthesis](#synthesis)
-- [Extending the Project](#extending-the-project)
-- [Future Work](#future-work)
-- [License](#license)
+
 
 ## Overview
 
@@ -100,34 +97,14 @@ The testbench automatically collects:
 
 ## Getting Started
 
-### Simulation
+### Prerequisites
+- Icarus Verilog (iverilog) or similar simulator
+- GTKWave for waveform viewing (optional)
 
+### Simulation
 1. Compile and run:
 ```bash
 iverilog -o sim ASG.sv Testbench.sv
 vvp sim > results.log
-EDA Playground Quickstart:
-
-Create a new Verilog/SystemVerilog design.
-
-Add these files:
-
-ASG.sv (Main module)
-
-Testbench.sv (Testbench)
-
-Run the simulation using this script:
-
-verilog
-Copy
-Edit
-module top;
-  initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
-    #1000 $finish;
-  end
-endmodule
-
 
 
