@@ -108,8 +108,7 @@ iverilog -o sim ASG.sv Testbench.sv
 vvp sim > results.log
 
 
-
-### EDA Playground Quickstart
+2. EDA Playground Quickstart
 
 #### 1. Setup Your Workspace
 1. Create new Verilog/SystemVerilog design
