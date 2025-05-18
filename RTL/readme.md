@@ -106,19 +106,21 @@ The testbench automatically collects:
 ```bash
 iverilog -o sim ASG.sv Testbench.sv
 vvp sim > results.log
+EDA Playground Quickstart:
 
+Create a new Verilog/SystemVerilog design.
 
-2. EDA Playground Quickstart
+Add these files:
 
-#### 1. Setup Your Workspace
-1. Create new Verilog/SystemVerilog design
-2. Add these files:
-   - `ASG.sv` (Main module)
-   - `Testbench.sv` (Testbench)
+ASG.sv (Main module)
 
-#### 2. Run Simulation
-```verilog
-// Sample EDA Playground test script:
+Testbench.sv (Testbench)
+
+Run the simulation using this script:
+
+verilog
+Copy
+Edit
 module top;
   initial begin
     $dumpfile("dump.vcd");
@@ -126,3 +128,6 @@ module top;
     #1000 $finish;
   end
 endmodule
+
+
+
