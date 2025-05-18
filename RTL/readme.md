@@ -9,7 +9,6 @@ A high-performance, hardware-optimized arithmetic sequence generator implementin
 
 ## Table of Contents
 - [Overview](#overview)
-- [Architecture](#architecture)
 - [Features](#features)
 - [Test Cases](#test-cases)
   - [Functional Tests](#functional-tests)
@@ -39,9 +38,6 @@ Key characteristics:
 - 6-stage floating-point adder
 - Comprehensive testbench with performance metrics
 
-## Architecture
-
-![Block Diagram](https://i.imgur.com/JQ6G8vD.png)
 
 ### Core Components:
 1. **Control FSM** (8 states)
@@ -108,5 +104,26 @@ The testbench automatically collects:
 
 1. Compile and run:
 ```bash
-iverilog -o sim fp_arithmetic_sequence_generator.v tb_with_metrics.v
+iverilog -o sim ASG.sv Testbench.sv
 vvp sim > results.log
+
+
+
+### EDA Playground Quickstart
+
+#### 1. Setup Your Workspace
+1. Create new Verilog/SystemVerilog design
+2. Add these files:
+   - `ASG.sv` (Main module)
+   - `Testbench.sv` (Testbench)
+
+#### 2. Run Simulation
+```verilog
+// Sample EDA Playground test script:
+module top;
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars;
+    #1000 $finish;
+  end
+endmodule
